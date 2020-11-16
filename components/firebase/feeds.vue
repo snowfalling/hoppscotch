@@ -1,9 +1,13 @@
 <template>
   <div v-if="fb.currentFeeds.length !== 0" class="virtual-list">
-    <ul v-for="feed in fb.currentFeeds" :key="feed.id" class="entry">
-      <div class="show-on-large-screen">
+    <ul
+      v-for="feed in fb.currentFeeds"
+      :key="feed.id"
+      class="flex-col py-2 border-b border-dashed border-brdColor"
+    >
+      <div data-test="list-item" class="show-on-large-screen">
         <li class="info">
-          <label>
+          <label data-test="list-label">
             {{ feed.label || $t("no_label") }}
           </label>
         </li>
@@ -12,13 +16,13 @@
         </button>
       </div>
       <div class="show-on-large-screen">
-        <li class="info clamb-3">
+        <li data-test="list-message" class="info clamb-3">
           <label>{{ feed.message || $t("empty") }}</label>
         </li>
       </div>
     </ul>
   </div>
-  <ul v-else>
+  <ul v-else class="flex-col">
     <li>
       <label class="info">{{ $t("empty") }}</label>
     </li>
@@ -27,24 +31,14 @@
 
 <style scoped lang="scss">
 .virtual-list {
-  max-height: calc(100vh - 298px);
-}
-
-ul,
-ol {
-  flex-direction: column;
-}
-
-.entry {
-  border-bottom: 1px dashed var(--brd-color);
-  padding: 0 0 8px;
+  max-height: calc(100vh - 296px);
 }
 
 .clamb-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
-  overflow: hidden;
+  @apply overflow-hidden;
 }
 </style>
 
@@ -60,8 +54,8 @@ export default {
     }
   },
   methods: {
-    deleteFeed(feed) {
-      fb.deleteFeed(feed.id)
+    async deleteFeed({ id }) {
+      await fb.deleteFeed(id)
       this.$toast.error(this.$t("deleted"), {
         icon: "delete",
       })

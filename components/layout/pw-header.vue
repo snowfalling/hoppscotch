@@ -1,10 +1,10 @@
 <template>
   <header class="header">
-    <div class="flex-wrap">
+    <div class="row-wrapper">
       <span class="slide-in">
         <nuxt-link :to="localePath('index')">
-          <h1 class="logo hide-on-small-screen">Hoppscotch</h1>
-          <h1 class="logo show-on-small-screen">Hs</h1>
+          <h1 class="text-xl hide-on-small-screen hover:text-acColor">Hoppscotch</h1>
+          <h1 class="text-xl show-on-small-screen hover:text-acColor">Hs</h1>
         </nuxt-link>
       </span>
       <span>
@@ -51,7 +51,7 @@
             <img
               v-if="fb.currentUser.photoURL"
               :src="fb.currentUser.photoURL"
-              class="material-icons"
+              class="rounded-full material-icons"
               alt="Profile image"
             />
             <i v-else class="material-icons">account_circle</i>
@@ -119,7 +119,7 @@
       <div slot="header">
         <ul>
           <li>
-            <div class="flex-wrap">
+            <div class="row-wrapper">
               <h3 class="title">{{ $t("extensions") }}</h3>
               <div>
                 <button class="icon" @click="showExtensions = false">
@@ -136,7 +136,7 @@
         </p>
         <div>
           <a
-            href="https://addons.mozilla.org/en-US/firefox/addon/postwoman"
+            href="https://addons.mozilla.org/en-US/firefox/addon/hoppscotch"
             target="_blank"
             rel="noopener"
           >
@@ -155,7 +155,7 @@
         </div>
         <div>
           <a
-            href="https://chrome.google.com/webstore/detail/postwoman-extension-for-c/amknoiejhlmhancpahfcfcfhllgkpbld"
+            href="https://chrome.google.com/webstore/detail/hoppscotch-browser-extens/amknoiejhlmhancpahfcfcfhllgkpbld"
             target="_blank"
             rel="noopener"
           >
@@ -179,7 +179,7 @@
       <div slot="header">
         <ul>
           <li>
-            <div class="flex-wrap">
+            <div class="row-wrapper">
               <h3 class="title">{{ $t("shortcuts") }}</h3>
               <div>
                 <button class="icon" @click="showShortcuts = false">
@@ -192,20 +192,55 @@
       </div>
       <div slot="body">
         <div>
+          <kbd>{{ getSpecialKey() }}</kbd>
+          +
+          <kbd>G</kbd>
           <label>{{ $t("send_request") }}</label>
-          <kbd>{{ getSpecialKey() }} G</kbd>
         </div>
         <div>
+          <kbd>{{ getSpecialKey() }}</kbd
+          >+<kbd>S</kbd>
           <label>{{ $t("save_to_collections") }}</label>
-          <kbd>{{ getSpecialKey() }} S</kbd>
         </div>
         <div>
+          <kbd>{{ getSpecialKey() }}</kbd
+          >+<kbd>K</kbd>
           <label>{{ $t("copy_request_link") }}</label>
-          <kbd>{{ getSpecialKey() }} K</kbd>
         </div>
         <div>
+          <kbd>{{ getSpecialKey() }}</kbd
+          >+<kbd>L</kbd>
           <label>{{ $t("reset_request") }}</label>
-          <kbd>{{ getSpecialKey() }} L</kbd>
+        </div>
+        <hr />
+        <div>
+          <kbd>Alt</kbd>+<kbd>▲</kbd>
+          <label>{{ $t("select_next_method") }}</label>
+        </div>
+        <div>
+          <kbd>Alt</kbd>+<kbd>▼</kbd>
+          <label>{{ $t("select_previous_method") }}</label>
+        </div>
+        <hr />
+        <div>
+          <kbd>Alt</kbd>+<kbd>G</kbd>
+          <label>{{ $t("select_get_method") }}</label>
+        </div>
+        <div>
+          <kbd>Alt</kbd>+<kbd>H</kbd>
+          <label>{{ $t("select_head_method") }}</label>
+        </div>
+        <div>
+          <kbd>Alt</kbd>+<kbd>P</kbd>
+          <label>{{ $t("select_post_method") }}</label>
+        </div>
+        <div>
+          <kbd>Alt</kbd>+<kbd>U</kbd>
+          <label>{{ $t("select_put_method") }}</label>
+        </div>
+        <div>
+          <kbd>Alt</kbd>+<kbd>X</kbd>
+          <label>{{ $t("select_delete_method") }}</label>
         </div>
       </div>
       <div slot="footer"></div>
@@ -214,7 +249,7 @@
       <div slot="header">
         <ul>
           <li>
-            <div class="flex-wrap">
+            <div class="row-wrapper">
               <h3 class="title">{{ $t("support_us") }}</h3>
               <div>
                 <button class="icon" @click="showSupport = false">
@@ -236,51 +271,48 @@
 <style scoped lang="scss">
 $responsiveWidth: 768px;
 
+kbd {
+  @apply inline-flex;
+  @apply resize-none;
+}
+
 @keyframes slideIn {
   0% {
-    opacity: 0;
-    left: -16px;
+    @apply opacity-0;
+    @apply -left-4;
   }
 
   100% {
-    opacity: 1;
-    left: 0px;
+    @apply opacity-100;
+    @apply left-0;
   }
 }
 
 .slide-in {
-  position: relative;
+  @apply relative;
+
   animation: slideIn 0.2s forwards ease-in-out;
 }
 
-.logo {
-  font-size: 22px;
-
-  &:hover {
-    color: var(--ac-color);
-  }
-}
-
 .show-on-small-screen {
-  display: none;
+  @apply hidden;
 }
 
 @media (max-width: $responsiveWidth) {
   .show-on-small-screen {
-    display: inline-flex;
+    @apply inline-flex;
   }
 }
 </style>
 
 <script>
-import intializePwa from "~/assets/js/pwa"
+import intializePwa from "~/helpers/pwa"
 import {
   hasExtensionInstalled,
   hasChromeExtensionInstalled,
   hasFirefoxExtensionInstalled,
 } from "~/helpers/strategies/ExtensionStrategy"
 import { getPlatformSpecialKey } from "~/helpers/platformutils"
-import firebase from "firebase/app"
 import { fb } from "~/helpers/fb"
 import closeIcon from "~/static/icons/close-24px.svg?inline"
 
@@ -327,34 +359,34 @@ export default {
         })
       }
 
-      // let showAd = localStorage.getItem("showAd") === "no"
-      // if (!showAd) {
-      //   setTimeout(() => {
-      //     this.$toast.clear()
-      //     this.$toast.show(
-      //       "<span>Get <u><a href='https://gum.co/keky' target='_blank' rel='noopener'>De-Coding The Passion Project</a></u> book, expertly crafted by the creator of Hoppscotch. Whoosh this away to dismiss →</span>",
-      //       {
-      //         icon: "",
-      //         duration: 0,
-      //         theme: "toasted-ad",
-      //         action: [
-      //           {
-      //             text: "Get",
-      //             icon: "chevron_right",
-      //             onClick: (e, toastObject) => {
-      //               localStorage.setItem("showAd", "no")
-      //               toastObject.goAway(0)
-      //               window.open("https://gum.co/keky")
-      //             },
-      //           },
-      //         ],
-      //         onComplete() {
-      //           localStorage.setItem("showAd", "no")
-      //         },
-      //       }
-      //     )
-      //   }, 11000)
-      // }
+      let showAd = localStorage.getItem("showAd") === "no"
+      if (!showAd) {
+        setTimeout(() => {
+          this.$toast.clear()
+          this.$toast.show(
+            "<span><a href='https://github.com/sponsors/hoppscotch' target='_blank' rel='noopener'>Sponsor us to support Hoppscotch open source project 💖</a><br><sub>Whoosh this away to dismiss.</sub></span>",
+            {
+              icon: "",
+              duration: 0,
+              theme: "toasted-ad",
+              action: [
+                {
+                  text: "Sponsor",
+                  icon: "chevron_right",
+                  onClick: (e, toastObject) => {
+                    localStorage.setItem("showAd", "no")
+                    toastObject.goAway(0)
+                    window.open("https://github.com/sponsors/hoppscotch")
+                  },
+                },
+              ],
+              onComplete() {
+                localStorage.setItem("showAd", "no")
+              },
+            }
+          )
+        }, 8000)
+      }
 
       let showExtensionsToast = localStorage.getItem("showExtensionsToast") === "yes"
 
@@ -411,19 +443,13 @@ export default {
             title: "Hoppscotch",
             text:
               "Hoppscotch • A free, fast and beautiful API request builder - Helps you create requests faster, saving precious time on development.",
-            url: "https://hoppscotch.io/",
+            url: "https://hoppscotch.io",
           })
           .then(() => {})
           .catch(console.error)
       } else {
         // fallback
       }
-    },
-  },
-
-  computed: {
-    availableLocales() {
-      return this.$i18n.locales.filter((i) => i.code !== this.$i18n.locale)
     },
   },
 }

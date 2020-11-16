@@ -11,7 +11,7 @@
       :show="showModalImportExport"
       @hide-modal="displayModalImportExport(false)"
     />
-    <div class="flex-wrap">
+    <div class="row-wrapper">
       <div>
         <button class="icon" @click="displayModalAdd(true)">
           <i class="material-icons">add</i>
@@ -28,13 +28,15 @@
       <i class="material-icons">help_outline</i> {{ $t("create_new_environment") }}
     </p>
     <div class="virtual-list">
-      <ul>
+      <ul class="flex-col">
         <li v-for="(environment, index) in environments" :key="environment.name">
           <environment
             :environmentIndex="index"
             :environment="environment"
             @edit-environment="editEnvironment(environment, index)"
-            @select-environment="$emit('use-environment', environment)"
+            @select-environment="
+              $emit('use-environment', { environment: environment, environments: environments })
+            "
           />
         </li>
       </ul>
@@ -44,12 +46,7 @@
 
 <style scoped lang="scss">
 .virtual-list {
-  max-height: calc(100vh - 245px);
-}
-
-ul {
-  display: flex;
-  flex-direction: column;
+  max-height: calc(100vh - 232px);
 }
 </style>
 

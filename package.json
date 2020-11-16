@@ -27,46 +27,49 @@
     "printWidth": 100
   },
   "dependencies": {
-    "@nuxtjs/axios": "^5.12.1",
-    "@nuxtjs/gtm": "^2.3.2",
+    "@nuxtjs/axios": "^5.12.2",
+    "@nuxtjs/gtm": "^2.4.0",
     "@nuxtjs/robots": "^2.4.2",
     "@nuxtjs/sitemap": "^2.4.0",
     "@nuxtjs/toast": "^3.3.1",
     "ace-builds": "^1.4.12",
-    "firebase": "^7.19.0",
     "esprima": "^4.0.1",
-    "graphql": "^15.3.0",
-    "graphql-language-service-interface": "^2.4.1",
-    "nuxt": "^2.14.3",
-    "nuxt-i18n": "^6.13.10",
+    "firebase": "^8.0.2",
+    "graphql": "^15.4.0",
+    "graphql-language-service-interface": "^2.4.2",
+    "nuxt": "^2.14.7",
+    "nuxt-i18n": "^6.15.4",
     "paho-mqtt": "^1.1.0",
-    "socket.io-client": "^2.3.0",
+    "socket.io-client": "^3.0.1",
     "socketio-wildcard": "^2.0.0",
     "v-tooltip": "^2.0.3",
     "vuejs-auto-complete": "^0.9.0",
-    "vuex-persist": "^2.2.0",
-    "yargs-parser": "^19.0.1"
+    "vuex-persist": "^3.1.3",
+    "yargs-parser": "^20.2.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.11.4",
-    "@babel/preset-env": "^7.11.0",
-    "@nuxtjs/dotenv": "^1.4.1",
+    "@babel/core": "^7.12.3",
+    "@babel/preset-env": "^7.12.1",
+    "@nuxtjs/color-mode": "^2.0.0",
     "@nuxtjs/google-analytics": "^2.4.0",
-    "@nuxtjs/pwa": "^3.0.1",
-    "@vue/test-utils": "^1.0.4",
+    "@nuxtjs/pwa": "^3.2.2",
+    "@nuxtjs/svg": "^0.1.12",
+    "@nuxtjs/tailwindcss": "^3.2.0",
+    "@testing-library/jest-dom": "^5.11.6",
+    "@vue/test-utils": "^1.1.1",
     "babel-core": "^7.0.0-bridge.0",
-    "babel-jest": "^26.3.0",
-    "@nuxtjs/svg": "^0.1.11",
-    "eslint": "^7.7.0",
-    "eslint-plugin-vue": "^6.2.2",
-    "husky": "^4.2.5",
-    "jest": "^26.4.1",
+    "babel-jest": "^26.6.3",
+    "eslint": "^7.13.0",
+    "eslint-plugin-vue": "^7.1.0",
+    "firebase-mock": "^2.3.2",
+    "husky": "^4.3.0",
+    "jest": "^26.6.3",
     "jest-serializer-vue": "^2.0.2",
-    "node-sass": "^4.14.1",
-    "prettier": "^2.0.5",
-    "pretty-quick": "^2.0.2",
-    "sass-loader": "^9.0.3",
-    "vue-jest": "^3.0.6"
+    "prettier": "^2.1.2",
+    "pretty-quick": "^3.1.0",
+    "sass": "^1.29.0",
+    "sass-loader": "^10.1.0",
+    "vue-jest": "^3.0.7"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -76,6 +79,7 @@
     ],
     "watchman": false,
     "moduleNameMapper": {
+      ".+\\.(svg)\\?inline$": "<rootDir>/__mocks__/svgMock.js",
       "^~/(.*)$": "<rootDir>/$1",
       "^~~/(.*)$": "<rootDir>/$1"
     },
@@ -83,6 +87,9 @@
       "^.+\\.js$": "babel-jest",
       ".*\\.(vue)$": "vue-jest"
     },
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.js"
+    ],
     "snapshotSerializers": [
       "jest-serializer-vue"
     ],

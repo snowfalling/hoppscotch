@@ -3,7 +3,7 @@
     <div slot="header">
       <ul>
         <li>
-          <div class="flex-wrap">
+          <div class="row-wrapper">
             <h3 class="title">{{ $t("new_folder") }}</h3>
             <div>
               <button class="icon" @click="hideModal">
@@ -21,19 +21,19 @@
             type="text"
             v-model="name"
             :placeholder="$t('my_new_folder')"
-            @keyup.enter="addNewFolder"
+            @keyup.enter="addFolder"
           />
         </li>
       </ul>
     </div>
     <div slot="footer">
-      <div class="flex-wrap">
+      <div class="row-wrapper">
         <span></span>
         <span>
           <button class="icon" @click="hideModal">
             {{ $t("cancel") }}
           </button>
-          <button class="icon primary" @click="addNewFolder">
+          <button class="icon primary" @click="addFolder">
             {{ $t("save") }}
           </button>
         </span>
@@ -52,7 +52,8 @@ export default {
   },
   props: {
     show: Boolean,
-    collection: Object,
+    folder: Object,
+    folderPath: String,
     collectionIndex: Number,
   },
   data() {
@@ -61,20 +62,12 @@ export default {
     }
   },
   methods: {
-    addNewFolder() {
-      this.$store.commit("postwoman/addNewFolder", {
-        folder: { name: this.$data.name },
-        collectionIndex: this.$props.collectionIndex,
+    addFolder() {
+      this.$emit("add-folder", {
+        name: this.name,
+        folder: this.folder,
+        path: this.folderPath || `${this.collectionIndex}`,
       })
-      this.hideModal()
-      this.syncCollections()
-    },
-    syncCollections() {
-      if (fb.currentUser !== null) {
-        if (fb.currentSettings[0].value) {
-          fb.writeCollections(JSON.parse(JSON.stringify(this.$store.state.postwoman.collections)))
-        }
-      }
     },
     hideModal() {
       this.$emit("hide-modal")

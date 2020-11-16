@@ -1,9 +1,17 @@
 <template>
   <div>
-    <div class="flex-wrap">
+    <div
+      :class="['row-wrapper', dragging ? 'drop-zone' : '']"
+      @dragover.prevent
+      @drop.prevent="dropEvent"
+      @dragover="dragging = true"
+      @drop="dragging = false"
+      @dragleave="dragging = false"
+      @dragend="dragging = false"
+    >
       <button class="icon" @click="toggleShowChildren">
-        <i class="material-icons" v-show="!showChildren">arrow_right</i>
-        <i class="material-icons" v-show="showChildren">arrow_drop_down</i>
+        <i class="material-icons" v-show="!showChildren && !isFiltered">arrow_right</i>
+        <i class="material-icons" v-show="showChildren || isFiltered">arrow_drop_down</i>
         <folderIcon class="material-icons" />
         <span>{{ collection.name }}</span>
       </button>
@@ -22,7 +30,11 @@
           </button>
           <template slot="popover">
             <div>
-              <button class="icon" @click="$emit('add-folder')" v-close-popover>
+              <button
+                class="icon"
+                @click="$emit('add-folder', { folder: collection, path: `${collectionIndex}` })"
+                v-close-popover
+              >
                 <i class="material-icons">create_new_folder</i>
                 <span>{{ $t("new_folder") }}</span>
               </button>
@@ -44,15 +56,22 @@
       </div>
     </div>
 
-    <div v-show="showChildren">
-      <ul>
-        <li v-for="(folder, index) in collection.folders" :key="folder.name">
+    <div v-show="showChildren || isFiltered">
+      <ul class="flex-col">
+        <li
+          v-for="(folder, index) in collection.folders"
+          :key="folder.name"
+          class="ml-8 border-l border-brdColor"
+        >
           <folder
             :folder="folder"
-            :folderIndex="index"
+            :folder-index="index"
+            :folder-path="`${collectionIndex}/${index}`"
             :collection-index="collectionIndex"
             :doc="doc"
-            @edit-folder="editFolder(collectionIndex, folder, index)"
+            :isFiltered="isFiltered"
+            @add-folder="$emit('add-folder', $event)"
+            @edit-folder="$emit('edit-folder', $event)"
             @edit-request="$emit('edit-request', $event)"
           />
         </li>
@@ -60,41 +79,26 @@
           <label>{{ $t("collection_empty") }}</label>
         </li>
       </ul>
-      <ul>
-        <li v-for="(request, index) in collection.requests" :key="index">
+      <ul class="flex-col">
+        <li
+          v-for="(request, index) in collection.requests"
+          :key="index"
+          class="ml-8 border-l border-brdColor"
+        >
           <request
             :request="request"
             :collection-index="collectionIndex"
             :folder-index="-1"
+            :folder-name="collection.name"
             :request-index="index"
             :doc="doc"
-            @edit-request="
-              $emit('edit-request', {
-                request,
-                collectionIndex,
-                folderIndex: undefined,
-                requestIndex: index,
-              })
-            "
+            @edit-request="$emit('edit-request', $event)"
           />
         </li>
       </ul>
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-ul {
-  display: flex;
-  flex-direction: column;
-}
-
-ul li {
-  display: flex;
-  margin-left: 32px;
-  border-left: 1px solid var(--brd-color);
-}
-</style>
 
 <script>
 import { fb } from "~/helpers/fb"
@@ -107,10 +111,12 @@ export default {
     collectionIndex: Number,
     collection: Object,
     doc: Boolean,
+    isFiltered: Boolean,
   },
   data() {
     return {
       showChildren: false,
+      dragging: false,
       selectedFolder: {},
     }
   },
@@ -135,8 +141,22 @@ export default {
       })
       this.syncCollections()
     },
-    editFolder(collectionIndex, folder, folderIndex) {
-      this.$emit("edit-folder", { collectionIndex, folder, folderIndex })
+    dropEvent({ dataTransfer }) {
+      this.dragging = !this.dragging
+      const oldCollectionIndex = dataTransfer.getData("oldCollectionIndex")
+      const oldFolderIndex = dataTransfer.getData("oldFolderIndex")
+      const oldFolderName = dataTransfer.getData("oldFolderName")
+      const requestIndex = dataTransfer.getData("requestIndex")
+      this.$store.commit("postwoman/moveRequest", {
+        oldCollectionIndex,
+        newCollectionIndex: this.$props.collectionIndex,
+        newFolderIndex: -1,
+        newFolderName: this.$props.collection.name,
+        oldFolderIndex,
+        oldFolderName,
+        requestIndex,
+      })
+      this.syncCollections()
     },
   },
 }

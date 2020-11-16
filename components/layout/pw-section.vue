@@ -2,7 +2,7 @@
   <fieldset :id="label.toLowerCase()" :class="{ 'no-colored-frames': !frameColorsEnabled }">
     <legend @click.prevent="collapse">
       <span>{{ label }}</span>
-      <i class="material-icons">
+      <i class="ml-2 align-middle material-icons">
         {{ isCollapsed(label) ? "expand_more" : "expand_less" }}
       </i>
     </legend>
@@ -14,68 +14,59 @@
 
 <style scoped lang="scss">
 fieldset {
-  margin: 16px 0;
-  border-radius: 8px;
-  background-color: var(--bg-dark-color);
-  transition: all 0.2s ease-in-out;
+  @apply my-2;
+  @apply p-2;
+  @apply rounded-lg;
+  @apply bg-bgDarkColor;
+  @apply transition;
+  @apply ease-in-out;
+  @apply duration-200;
 
   legend {
-    display: inline-block;
-    align-items: center;
-    justify-content: center;
-    color: var(--fg-color);
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-
-    * {
-      vertical-align: middle;
-    }
-
-    i {
-      margin-left: 8px;
-    }
+    @apply text-fgColor;
+    @apply text-sm;
+    @apply font-bold;
+    @apply cursor-pointer;
+    @apply transition;
+    @apply ease-in-out;
+    @apply duration-200;
   }
 
   &.blue legend {
-    color: #57b5f9;
-  }
-
-  &.gray legend {
-    color: #bcc2cd;
+    @apply text-blue-400;
   }
 
   &.green legend {
-    color: #50fa7b;
+    @apply text-green-400;
   }
 
-  &.cyan legend {
-    color: #8be9fd;
+  &.teal legend {
+    @apply text-teal-400;
   }
 
   &.purple legend {
-    color: #bd93f9;
+    @apply text-purple-400;
   }
 
   &.orange legend {
-    color: #ffb86c;
+    @apply text-orange-400;
   }
 
   &.pink legend {
-    color: #ff79c6;
+    @apply text-pink-400;
   }
 
   &.red legend {
-    color: #ff5555;
+    @apply text-red-400;
   }
 
   &.yellow legend {
-    color: #f1fa8c;
+    @apply text-yellow-400;
   }
 }
 
 fieldset.no-colored-frames legend {
-  color: var(--fg-color);
+  @apply text-fgColor;
 }
 </style>
 
@@ -95,16 +86,10 @@ export default {
       type: String,
       default: "Section",
     },
-    collapsed: {
-      type: Boolean,
-    },
   },
 
   methods: {
-    collapse({ target }) {
-      const parent = target.parentNode.parentNode
-      parent.querySelector(".collapsible").classList.toggle("hidden")
-
+    collapse() {
       // Save collapsed section into the collapsedSections array
       this.$store.commit("setCollapsedSection", this.sectionString)
     },

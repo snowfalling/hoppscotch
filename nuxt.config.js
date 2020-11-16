@@ -1,29 +1,33 @@
-require("dotenv").config()
-// Some helpful application constants.
-// TODO: Use these when rendering the pages (rather than just for head/meta tags...)
+// Common options
 export const options = {
   name: "Hoppscotch",
   shortDescription: "A free, fast and beautiful API request builder",
   description: "Helps you create requests faster, saving precious time on development.",
   loading: {
-    color: "#50fa7b",
-    background: "#202124",
+    color: "var(--ac-color)",
+    background: "var(--bg-color)",
   },
   app: {
-    color: "#ffffff",
     background: "#202124",
-    accent: "#50fa7b",
   },
   social: {
     twitter: "@liyasthomas",
   },
 }
+
 export default {
-  mode: "spa",
+  // Disable server-side rendering (https://go.nuxtjs.dev/ssr-mode)
+  ssr: false,
+
+  // Target (https://go.nuxtjs.dev/config-target)
   target: "static",
-  /*
-   ** Headers of the page
-   */
+
+  // Default: localhost
+  server: {
+    host: "0.0.0.0",
+  },
+
+  // Global page headers (https://go.nuxtjs.dev/config-head)
   head: {
     title: `${options.name} • ${options.shortDescription}`,
     meta: [
@@ -46,11 +50,11 @@ export default {
       },
       {
         itemprop: "image",
-        content: `${process.env.BASE_URL}logo.jpg`,
+        content: `${process.env.BASE_URL}/banner.jpg`,
       },
       {
         property: "og:image",
-        content: `${process.env.BASE_URL}logo.jpg`,
+        content: `${process.env.BASE_URL}/banner.jpg`,
       },
       // Add to homescreen for Chrome on Android. Fallback for PWA (handled by nuxt)
       {
@@ -60,7 +64,7 @@ export default {
       // Windows phone tile icon
       {
         name: "msapplication-TileImage",
-        content: `/icons/icon-144x144.png`,
+        content: `/icon.png`,
       },
       {
         name: "msapplication-TileColor",
@@ -71,96 +75,62 @@ export default {
         content: "no",
       },
     ],
-    link: [
-      {
-        rel: "icon",
-        type: "image/x-icon",
-        href: `/favicon.ico`,
-      },
-      // Home-screen icons (iOS)
-      {
-        rel: "apple-touch-icon",
-        href: `/icons/icon-48x48.png`,
-      },
-      {
-        rel: "apple-touch-startup-image",
-        href: `/icons/icon-72x72.png`,
-      },
-      {
-        rel: "apple-touch-icon",
-        sizes: "192x192",
-        href: `/icons/icon-192x192.png`,
-      },
-    ],
   },
-  /*
-   ** Customize the progress-bar color
-   */
+
+  // Customize the progress-bar color (https://nuxtjs.org/api/configuration-loading/#customizing-the-progress-bar)
   loading: {
-    color: "var(--ac-color)",
+    color: options.loading.color,
     continuous: true,
   },
-  /*
-   ** Customize the loading indicator
-   */
+
+  // Customize the loading indicator (https://nuxtjs.org/api/configuration-loading-indicator)
   loadingIndicator: {
     name: "pulse",
     color: options.loading.color,
     background: options.loading.background,
   },
-  /*
-   ** Global CSS
-   */
-  css: ["~/assets/css/styles.scss", "~/assets/css/themes.scss", "~/assets/css/fonts.scss"],
-  /*
-   ** Plugins to load before mounting the App
-   */
+
+  // Global CSS (https://go.nuxtjs.dev/config-css)
+  css: ["~/assets/scss/styles.scss", "~/assets/scss/themes.scss", "~/assets/scss/fonts.scss"],
+
+  // Plugins to run before rendering page (https://go.nuxtjs.dev/config-plugins)
   plugins: ["~/plugins/vuex-persist", "~/plugins/v-tooltip"],
-  /*
-   ** Auto import components
-   ** See https://nuxtjs.org/api/configuration-components
-   */
+
+  // Auto import components (https://go.nuxtjs.dev/config-components)
   components: true,
-  /*
-   ** Nuxt.js dev-modules
-   */
+
+  // Modules for dev and build (recommended) (https://go.nuxtjs.dev/config-modules)
   buildModules: [
-    // https://pwa.nuxtjs.org
+    // https://github.com/nuxt-community/pwa-module
     "@nuxtjs/pwa",
-    // Doc: https://github.com/nuxt-community/dotenv-module
-    "@nuxtjs/dotenv",
-    // Doc: https://github.com/nuxt-community/analytics-module
+    // https://github.com/nuxt-community/analytics-module
     "@nuxtjs/google-analytics",
-    // Doc: https://github.com/nuxt-community/gtm-module
+    // https://github.com/nuxt-community/gtm-module
     "@nuxtjs/gtm",
-    // Doc: https://github.com/nuxt-community/svg-module
+    // https://github.com/nuxt-community/svg-module
     "@nuxtjs/svg",
+    // https://github.com/nuxt-community/nuxt-tailwindcss
+    "@nuxtjs/tailwindcss",
+    // https://github.com/nuxt-community/color-mode-module
+    "@nuxtjs/color-mode",
   ],
-  /*
-   ** Nuxt.js modules
-   */
+
+  // Modules (https://go.nuxtjs.dev/config-modules)
   modules: [
-    // https://axios.nuxtjs.org
+    // https://github.com/nuxt-community/axios-module
     "@nuxtjs/axios",
     // https://github.com/nuxt-community/modules/tree/master/packages/toast
     "@nuxtjs/toast",
-    // Doc: https://github.com/nuxt-community/nuxt-i18n
+    // https://github.com/nuxt-community/i18n-module
     "nuxt-i18n",
-    // Doc: https://github.com/nuxt-community/robots-module
+    // https://github.com/nuxt-community/robots-module
     "@nuxtjs/robots",
-    // Doc: https://github.com/nuxt-community/sitemap-module
+    // https://github.com/nuxt-community/sitemap-module
     "@nuxtjs/sitemap",
   ],
+
+  // PWA module configuration (https://pwa.nuxtjs.org/setup)
   pwa: {
-    manifest: {
-      name: options.name,
-      short_name: options.name,
-      start_url: `/`,
-      display: "standalone",
-      background_color: options.app.background,
-      description: options.shortDescription,
-      theme_color: options.app.background,
-    },
     meta: {
       ogHost: process.env.BASE_URL,
       twitterCard: "summary_large_image",
@@ -169,39 +139,55 @@ export default {
       description: options.shortDescription,
       theme_color: options.app.background,
     },
+    manifest: {
+      name: options.name,
+      short_name: options.name,
+      description: options.shortDescription,
+      start_url: "/",
+      background_color: options.app.background,
+      theme_color: options.app.background,
+    },
   },
+
+  // Toast module configuration (https://github.com/nuxt-community/modules/tree/master/packages/toast)
   toast: {
     position: "bottom-center",
     duration: 3000,
     theme: "bubble",
     keepOnHover: true,
   },
+
+  // Google Analytics module configuration (https://github.com/nuxt-community/analytics-module)
   googleAnalytics: {
-    id: process.env.GA_ID || "UA-61422507-4",
+    id: process.env.GA_ID,
   },
+
+  // Google Tag Manager module configuration (https://github.com/nuxt-community/gtm-module)
   gtm: {
-    id: process.env.GTM_ID || "GTM-NMKVBMV",
+    id: process.env.GTM_ID,
   },
+
+  // Sitemap module configuration (https://github.com/nuxt-community/sitemap-module)
   sitemap: {
-    hostname: process.env.BASE_URL || "https://hoppscotch.io/",
+    hostname: process.env.BASE_URL || "https://hoppscotch.io",
   },
+
+  // Robots module configuration (https://github.com/nuxt-community/robots-module)
   robots: {
     UserAgent: "*",
     Disallow: "",
     Allow: "/",
-    Sitemap: `${process.env.BASE_URL}sitemap.xml`,
+    Sitemap: `${process.env.BASE_URL}/sitemap.xml`,
   },
-  env: {
-    API_KEY: process.env.API_KEY,
-    AUTH_DOMAIN: process.env.AUTH_DOMAIN,
-    DATABASE_URL: process.env.DATABASE_URL,
-    PROJECT_ID: process.env.PROJECT_ID,
-    STORAGE_BUCKET: process.env.STORAGE_BUCKET,
-    MESSAGING_SENDER_ID: process.env.MESSAGING_SENDER_ID,
-    APP_ID: process.env.APP_ID,
-    MEASUREMENT_ID: process.env.MEASUREMENT_ID,
-    BASE_URL: process.env.BASE_URL,
+
+  // Color Mode module configuration (https://github.com/nuxt-community/color-mode-module)
+  colorMode: {
+    classSuffix: "",
+    preference: "dark",
+    fallback: "dark",
   },
+
+  // i18n module configuration (https://github.com/nuxt-community/i18n-module)
   i18n: {
     locales: [
       {
@@ -282,6 +268,24 @@ export default {
         iso: "ko-KR",
         file: "ko-KR.json",
       },
+      {
+        code: "bn",
+        name: "Bengali",
+        iso: "bn-BD",
+        file: "bn-BD.json",
+      },
+      {
+        code: "ml",
+        name: "Malayalam",
+        iso: "ml-ML",
+        file: "ml-ML.json",
+      },
+      {
+        code: "vi",
+        name: "Vietnamese",
+        iso: "vi-VN",
+        file: "vi-VN.json",
+      },
     ],
     defaultLocale: "en",
     vueI18n: {
@@ -289,14 +293,15 @@ export default {
     },
     lazy: true,
     langDir: "lang/",
+    detectBrowserLanguage: {
+      alwaysRedirect: true,
+      fallbackLocale: "en",
+    },
   },
-  /*
-   ** Build configuration
-   */
+
+  // Build Configuration (https://go.nuxtjs.dev/config-build)
   build: {
-    /*
-     ** You can extend webpack config here
-     */
+    // You can extend webpack config here
     extend(config, ctx) {
       // Sets webpack's mode to development if `isDev` is true.
       if (ctx.isDev) {
@@ -310,10 +315,28 @@ export default {
     cache: true,
     // hardSource: true,
   },
-  /*
-   ** Generate configuration
-   */
+
+  // Generate configuration (https://nuxtjs.org/api/configuration-generate)
   generate: {
     fallback: true,
+  },
+
+  // Public runtime configuration (https://nuxtjs.org/guide/runtime-config)
+  publicRuntimeConfig: {
+    GA_ID: process.env.GA_ID || "UA-61422507-4",
+    GTM_ID: process.env.GTM_ID || "GTM-NMKVBMV",
+    BASE_URL: process.env.BASE_URL || "https://hoppscotch.io",
+  },
+
+  // Private runtime configuration (https://nuxtjs.org/guide/runtime-config)
+  privateRuntimeConfig: {
+    API_KEY: process.env.API_KEY,
+    AUTH_DOMAIN: process.env.AUTH_DOMAIN,
+    DATABASE_URL: process.env.DATABASE_URL,
+    PROJECT_ID: process.env.PROJECT_ID,
+    STORAGE_BUCKET: process.env.STORAGE_BUCKET,
+    MESSAGING_SENDER_ID: process.env.MESSAGING_SENDER_ID,
+    APP_ID: process.env.APP_ID,
+    MEASUREMENT_ID: process.env.MEASUREMENT_ID,
   },
 }

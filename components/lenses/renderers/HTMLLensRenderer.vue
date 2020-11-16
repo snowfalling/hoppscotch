@@ -1,7 +1,7 @@
 <template>
   <ul>
     <li>
-      <div class="flex-wrap">
+      <div class="row-wrapper">
         <label for="body">{{ $t("response") }}</label>
         <div>
           <button
@@ -73,6 +73,7 @@
     </li>
   </ul>
 </template>
+
 <script>
 import TextContentRendererMixin from "./mixins/TextContentRendererMixin"
 

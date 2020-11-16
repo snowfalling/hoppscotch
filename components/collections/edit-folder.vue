@@ -3,7 +3,7 @@
     <div slot="header">
       <ul>
         <li>
-          <div class="flex-wrap">
+          <div class="row-wrapper">
             <h3 class="title">{{ $t("edit_folder") }}</h3>
             <div>
               <button class="icon" @click="hideModal">
@@ -22,7 +22,7 @@
       </ul>
     </div>
     <div slot="footer">
-      <div class="flex-wrap">
+      <div class="row-wrapper">
         <span></span>
         <span>
           <button class="icon" @click="hideModal">
@@ -47,7 +47,6 @@ export default {
   },
   props: {
     show: Boolean,
-    collection: Object,
     collectionIndex: Number,
     folder: Object,
     folderIndex: Number,
@@ -70,6 +69,7 @@ export default {
         collectionIndex: this.$props.collectionIndex,
         folder: { ...this.$props.folder, name: this.$data.name },
         folderIndex: this.$props.folderIndex,
+        folderName: this.$props.folder.name,
       })
       this.hideModal()
       this.syncCollections()

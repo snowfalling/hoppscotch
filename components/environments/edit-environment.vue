@@ -3,7 +3,7 @@
     <div slot="header">
       <ul>
         <li>
-          <div class="flex-wrap">
+          <div class="row-wrapper">
             <h3 class="title">{{ $t("edit_environment") }}</h3>
             <div>
               <button class="icon" @click="hideModal">
@@ -27,7 +27,7 @@
       </ul>
       <ul>
         <li>
-          <div class="flex-wrap">
+          <div class="row-wrapper">
             <label for="variableList">{{ $t("env_variable_list") }}</label>
             <div>
               <button class="icon" @click="clearContent($event)" v-tooltip.bottom="$t('clear')">
@@ -90,7 +90,7 @@
       </ul>
     </div>
     <div slot="footer">
-      <div class="flex-wrap">
+      <div class="row-wrapper">
         <span></span>
         <span>
           <button class="icon" @click="hideModal">
@@ -126,7 +126,7 @@ export default {
     }
   },
   watch: {
-    editingEnvironment: function (update) {
+    editingEnvironment(update) {
       this.name =
         this.$props.editingEnvironment && this.$props.editingEnvironment.name
           ? this.$props.editingEnvironment.name
@@ -151,13 +151,13 @@ export default {
         }
       }
     },
-    clearContent(e) {
+    clearContent({ target }) {
       this.$store.commit("postwoman/removeVariables", [])
-      e.target.innerHTML = this.doneButton
+      target.innerHTML = this.doneButton
       this.$toast.info(this.$t("cleared"), {
         icon: "clear_all",
       })
-      setTimeout(() => (e.target.innerHTML = '<i class="material-icons">clear_all</i>'), 1000)
+      setTimeout(() => (target.innerHTML = '<i class="material-icons">clear_all</i>'), 1000)
     },
     addEnvironmentVariable() {
       let value = { key: "", value: "" }

@@ -3,7 +3,7 @@
     <div slot="header">
       <ul>
         <li>
-          <div class="flex-wrap">
+          <div class="row-wrapper">
             <h3 class="title">{{ $t("import_export") }} {{ $t("environments") }}</h3>
             <div>
               <button class="icon" @click="hideModal">
@@ -11,7 +11,7 @@
               </button>
             </div>
           </div>
-          <div class="flex-wrap">
+          <div class="row-wrapper">
             <span
               v-tooltip="{
                 content: !fb.currentUser ? $t('login_first') : $t('replace_current'),
@@ -32,7 +32,7 @@
               <input
                 type="file"
                 @change="replaceWithJSON"
-                style="display: none;"
+                style="display: none"
                 ref="inputChooseFileToReplaceWith"
                 accept="application/json"
               />
@@ -47,7 +47,7 @@
               <input
                 type="file"
                 @change="importFromJSON"
-                style="display: none;"
+                style="display: none"
                 ref="inputChooseFileToImportFrom"
                 accept="application/json"
               />
@@ -60,7 +60,7 @@
       <textarea v-model="environmentJson" rows="8"></textarea>
     </div>
     <div slot="footer">
-      <div class="flex-wrap">
+      <div class="row-wrapper">
         <span></span>
         <span>
           <button class="icon" @click="hideModal">
@@ -108,19 +108,20 @@ export default {
     },
     replaceWithJSON() {
       let reader = new FileReader()
-      reader.onload = (event) => {
-        let content = event.target.result
+      reader.onload = ({ target }) => {
+        let content = target.result
         let environments = JSON.parse(content)
         this.$store.commit("postwoman/replaceEnvironments", environments)
       }
       reader.readAsText(this.$refs.inputChooseFileToReplaceWith.files[0])
       this.fileImported()
       this.syncToFBEnvironments()
+      this.$refs.inputChooseFileToReplaceWith.value = ""
     },
     importFromJSON() {
       let reader = new FileReader()
-      reader.onload = (event) => {
-        let content = event.target.result
+      reader.onload = ({ target }) => {
+        let content = target.result
         let importFileObj = JSON.parse(content)
         if (
           importFileObj["_postman_variable_scope"] === "environment" ||
@@ -133,6 +134,7 @@ export default {
       }
       reader.readAsText(this.$refs.inputChooseFileToImportFrom.files[0])
       this.syncToFBEnvironments()
+      this.$refs.inputChooseFileToImportFrom.value = ""
     },
     importFromPostwoman(environments) {
       let confirmation = this.$t("file_imported")
@@ -141,11 +143,9 @@ export default {
         confirmation,
       })
     },
-    importFromPostman(importFileObj) {
-      let environment = { name: importFileObj.name, variables: [] }
-      importFileObj.values.forEach((element) =>
-        environment.variables.push({ key: element.key, value: element.value })
-      )
+    importFromPostman({ name, values }) {
+      let environment = { name, variables: [] }
+      values.forEach(({ key, value }) => environment.variables.push({ key, value }))
       let environments = [environment]
       this.importFromPostwoman(environments)
     },
@@ -156,7 +156,7 @@ export default {
         type: "text/json",
       })
       let anchor = document.createElement("a")
-      anchor.download = "postwoman-environment.json"
+      anchor.download = "hoppscotch-environment.json"
       anchor.href = window.URL.createObjectURL(blob)
       anchor.target = "_blank"
       anchor.style.display = "none"

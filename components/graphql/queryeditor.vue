@@ -1,26 +1,22 @@
 <template>
-  <div class="show-if-initialized" :class="{ initialized }">
+  <div class="opacity-0 show-if-initialized" :class="{ initialized }">
     <pre ref="editor"></pre>
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 .show-if-initialized {
-  opacity: 0;
-
   &.initialized {
-    opacity: 1;
+    @apply opacity-100;
   }
 
   & > * {
-    transition: none;
+    @apply transition-none;
   }
 }
 </style>
 
 <script>
-const DEFAULT_THEME = "twilight"
-
 import ace from "ace-builds"
 import "ace-builds/webpack-resolver"
 import "ace-builds/src-noconflict/ext-language_tools"
@@ -40,6 +36,7 @@ export default {
     theme: {
       type: String,
       required: false,
+      default: null,
     },
     onRunGQLQuery: {
       type: Function,
@@ -178,9 +175,11 @@ export default {
     defineTheme() {
       if (this.theme) {
         return this.theme
-      } else {
-        return this.$store.state.postwoman.settings.THEME_ACE_EDITOR || DEFAULT_THEME
       }
+      const strip = (str) => str.replace(/#/g, "").replace(/ /g, "").replace(/"/g, "")
+      return strip(
+        window.getComputedStyle(document.documentElement).getPropertyValue("--editor-theme")
+      )
     },
 
     setValidationSchema(schema) {

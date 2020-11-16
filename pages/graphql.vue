@@ -11,15 +11,19 @@
                 type="url"
                 v-model="url"
                 spellcheck="false"
-                @keyup.enter="getSchema()"
+                @keyup.enter="onPollSchemaClick()"
               />
             </li>
             <div>
               <li>
                 <label for="get" class="hide-on-small-screen">&nbsp;</label>
-                <button id="get" name="get" @click="getSchema">
-                  {{ $t("get_schema") }}
-                  <span><i class="material-icons">send</i></span>
+                <button id="get" name="get" @click="onPollSchemaClick">
+                  {{ !isPollingSchema ? $t("connect") : $t("disconnect") }}
+                  <span
+                    ><i class="material-icons">{{
+                      !isPollingSchema ? "sync" : "sync_disabled"
+                    }}</i></span
+                  >
                 </button>
               </li>
             </div>
@@ -29,7 +33,7 @@
         <pw-section class="orange" :label="$t('headers')" ref="headers">
           <ul v-if="headers.length !== 0">
             <li>
-              <div class="flex-wrap">
+              <div class="row-wrapper">
                 <label for="headerList">{{ $t("header_list") }}</label>
                 <div>
                   <button class="icon" @click="headers = []" v-tooltip.bottom="$t('clear')">
@@ -93,7 +97,7 @@
         </pw-section>
 
         <pw-section class="green" :label="$t('schema')" ref="schema">
-          <div class="flex-wrap">
+          <div class="row-wrapper">
             <label>{{ $t("schema") }}</label>
             <div v-if="schema">
               <button
@@ -152,8 +156,8 @@
           />
         </pw-section>
 
-        <pw-section class="cyan" :label="$t('query')" ref="query">
-          <div class="flex-wrap gqlRunQuery">
+        <pw-section class="teal" :label="$t('query')" ref="query">
+          <div class="row-wrapper gqlRunQuery">
             <label for="gqlQuery">{{ $t("query") }}</label>
             <div>
               <button
@@ -210,7 +214,7 @@
         </pw-section>
 
         <pw-section class="purple" label="Response" ref="response">
-          <div class="flex-wrap">
+          <div class="row-wrapper">
             <label for="responseField">{{ $t("response") }}</label>
             <div>
               <button
@@ -260,9 +264,10 @@
           />
         </pw-section>
       </div>
-      <aside class="sticky-inner inner-right">
+      <aside class="sticky-inner inner-right lg:max-w-md">
         <pw-section class="purple" :label="$t('docs')" ref="docs">
-          <section>
+          <section class="flex-col">
+            <input type="text" :placeholder="$t('search')" v-model="graphqlFieldsFilterText" />
             <tabs ref="gqlTabs">
               <div class="gqlTabs">
                 <tab
@@ -271,13 +276,13 @@
                   :label="$t('queries')"
                   :selected="true"
                 >
-                  <div v-for="field in queryFields" :key="field.name">
+                  <div v-for="field in filteredQueryFields" :key="field.name">
                     <field :gqlField="field" :jumpTypeCallback="handleJumpToType" />
                   </div>
                 </tab>
 
                 <tab v-if="mutationFields.length > 0" :id="'mutations'" :label="$t('mutations')">
-                  <div v-for="field in mutationFields" :key="field.name">
+                  <div v-for="field in filteredMutationFields" :key="field.name">
                     <field :gqlField="field" :jumpTypeCallback="handleJumpToType" />
                   </div>
                 </tab>
@@ -287,14 +292,19 @@
                   :id="'subscriptions'"
                   :label="$t('subscriptions')"
                 >
-                  <div v-for="field in subscriptionFields" :key="field.name">
+                  <div v-for="field in filteredSubscriptionFields" :key="field.name">
                     <field :gqlField="field" :jumpTypeCallback="handleJumpToType" />
                   </div>
                 </tab>
 
                 <tab v-if="gqlTypes.length > 0" :id="'types'" :label="$t('types')" ref="typesTab">
-                  <div v-for="type in gqlTypes" :key="type.name" :id="`type_${type.name}`">
-                    <type :gqlType="type" :jumpTypeCallback="handleJumpToType" />
+                  <div v-for="type in filteredGqlTypes" :key="type.name" :id="`type_${type.name}`">
+                    <type
+                      :gqlType="type"
+                      :isHighlighted="isGqlTypeHighlighted({ gqlType: type })"
+                      :highlightedFields="getGqlTypeHighlightedFields({ gqlType: type })"
+                      :jumpTypeCallback="handleJumpToType"
+                    />
                   </div>
                 </tab>
               </div>
@@ -321,15 +331,14 @@
 <style scoped lang="scss">
 .gqlTabs {
   max-height: calc(100vh - 192px);
-  overflow: auto;
+  @apply overflow-auto;
 }
 .gqlRunQuery {
-  margin-bottom: 12px;
+  @apply mb-8;
 }
 </style>
 
 <script>
-import axios from "axios"
 import * as gql from "graphql"
 import { commonHeaders } from "~/helpers/headers"
 import { getPlatformSpecialKey } from "~/helpers/platformutils"
@@ -350,6 +359,9 @@ export default {
       doneButton: '<i class="material-icons">done</i>',
       expandResponse: false,
       responseBodyMaxLines: 16,
+      graphqlFieldsFilterText: undefined,
+      isPollingSchema: false,
+      timeoutSubscription: null,
 
       settings: {
         SCROLL_INTO_ENABLED:
@@ -360,6 +372,30 @@ export default {
     }
   },
   computed: {
+    filteredQueryFields() {
+      return this.getFilteredGraphqlFields({
+        filterText: this.graphqlFieldsFilterText,
+        fields: this.queryFields,
+      })
+    },
+    filteredMutationFields() {
+      return this.getFilteredGraphqlFields({
+        filterText: this.graphqlFieldsFilterText,
+        fields: this.mutationFields,
+      })
+    },
+    filteredSubscriptionFields() {
+      return this.getFilteredGraphqlFields({
+        filterText: this.graphqlFieldsFilterText,
+        fields: this.subscriptionFields,
+      })
+    },
+    filteredGqlTypes() {
+      return this.getFilteredGraphqlTypes({
+        filterText: this.graphqlFieldsFilterText,
+        types: this.gqlTypes,
+      })
+    },
     url: {
       get() {
         return this.$store.state.gql.url
@@ -425,7 +461,76 @@ export default {
       this.getDocsFromSchema(gqlSchema)
     }
   },
+  beforeRouteLeave(_to, _from, next) {
+    this.isPollingSchema = false
+    if (this.timeoutSubscription) clearTimeout(this.timeoutSubscription)
+
+    next()
+  },
   methods: {
+    isGqlTypeHighlighted({ gqlType }) {
+      if (!this.graphqlFieldsFilterText) return false
+
+      return this.isTextFoundInGraphqlFieldObject({
+        text: this.graphqlFieldsFilterText,
+        graphqlFieldObject: gqlType,
+      })
+    },
+    getGqlTypeHighlightedFields({ gqlType }) {
+      if (!this.graphqlFieldsFilterText) return []
+
+      const fields = Object.values(gqlType._fields || {})
+
+      if (!fields || fields.length === 0) return []
+
+      return fields.filter((field) =>
+        this.isTextFoundInGraphqlFieldObject({
+          text: this.graphqlFieldsFilterText,
+          graphqlFieldObject: field,
+        })
+      )
+    },
+    isTextFoundInGraphqlFieldObject({ text, graphqlFieldObject }) {
+      const normalizedText = text.toLowerCase()
+
+      const isFilterTextFoundInDescription = graphqlFieldObject.description
+        .toLowerCase()
+        .includes(normalizedText)
+      const isFilterTextFoundInName = graphqlFieldObject.name.toLowerCase().includes(normalizedText)
+
+      return isFilterTextFoundInDescription || isFilterTextFoundInName
+    },
+    getFilteredGraphqlFields({ filterText, fields }) {
+      if (!filterText) return fields
+
+      return fields.filter((field) =>
+        this.isTextFoundInGraphqlFieldObject({ text: filterText, graphqlFieldObject: field })
+      )
+    },
+    getFilteredGraphqlTypes({ filterText, types }) {
+      if (!filterText) return types
+
+      return types.filter((type) => {
+        const isFilterTextMatching = this.isTextFoundInGraphqlFieldObject({
+          text: filterText,
+          graphqlFieldObject: type,
+        })
+
+        if (isFilterTextMatching) {
+          return true
+        }
+
+        const isFilterTextMatchingAtLeastOneField = Object.values(type._fields || {}).some(
+          (field) =>
+            this.isTextFoundInGraphqlFieldObject({
+              text: filterText,
+              graphqlFieldObject: field,
+            })
+        )
+
+        return isFilterTextMatchingAtLeastOneField
+      })
+    },
     getSpecialKey: getPlatformSpecialKey,
     doPrettifyQuery() {
       this.$refs.queryEditor.prettifyQuery()
@@ -518,7 +623,8 @@ export default {
 
         const res = await sendNetworkRequest(reqOptions, this.$store)
 
-        const responseText = new TextDecoder("utf-8").decode(res.data)
+        // HACK: Temporary trailing null character issue from the extension fix
+        const responseText = new TextDecoder("utf-8").decode(res.data).replace(/\0+$/, "")
 
         this.response = JSON.stringify(JSON.parse(responseText), null, 2)
 
@@ -587,6 +693,79 @@ export default {
       }
       this.gqlTypes = types
     },
+    async onPollSchemaClick() {
+      if (this.isPollingSchema) {
+        this.isPollingSchema = false
+      } else {
+        this.isPollingSchema = true
+        await this.getSchema()
+
+        this.pollSchema()
+      }
+    },
+    async pollSchema() {
+      if (!this.isPollingSchema) return
+
+      this.$nuxt.$loading.start()
+
+      try {
+        const query = JSON.stringify({
+          query: gql.getIntrospectionQuery(),
+        })
+
+        let headers = {}
+        this.headers.forEach(({ key, value }) => {
+          headers[key] = value
+        })
+
+        const reqOptions = {
+          method: "post",
+          url: this.url,
+          headers: {
+            ...headers,
+            "content-type": "application/json",
+          },
+          data: query,
+        }
+
+        const data = await sendNetworkRequest(reqOptions, this.$store)
+
+        // HACK : Temporary trailing null character issue from the extension fix
+        const response = new TextDecoder("utf-8").decode(data.data).replace(/\0+$/, "")
+        const introspectResponse = JSON.parse(response)
+
+        const schema = gql.buildClientSchema(introspectResponse.data)
+
+        this.$store.commit("setGQLState", {
+          value: JSON.stringify(introspectResponse.data),
+          attribute: "schemaIntrospection",
+        })
+
+        this.schema = gql.printSchema(schema, {
+          commentDescriptions: true,
+        })
+
+        this.getDocsFromSchema(schema)
+
+        this.$refs.queryEditor.setValidationSchema(schema)
+        this.$nuxt.$loading.finish()
+      } catch (error) {
+        this.$nuxt.$loading.finish()
+
+        this.schema = `${error}. ${this.$t("check_console_details")}`
+        this.$toast.error(
+          `${this.$t("graphql_introspect_failed")} ${this.$t("check_graphql_valid")}`,
+          {
+            icon: "error",
+          }
+        )
+        console.log("Error", error)
+      }
+
+      this.$nuxt.$loading.finish()
+
+      if (this.isPollingSchema) this.timeoutSubscription = setTimeout(this.pollSchema, 7000)
+    },
     async getSchema() {
       const startTime = Date.now()
 
@@ -619,7 +798,8 @@ export default {
 
         const data = await sendNetworkRequest(reqOptions, this.$store)
 
-        const response = new TextDecoder("utf-8").decode(data.data)
+        // HACK : Temporary trailing null character issue from the extension fix
+        const response = new TextDecoder("utf-8").decode(data.data).replace(/\0+$/, "")
         const introspectResponse = JSON.parse(response)
 
         const schema = gql.buildClientSchema(introspectResponse.data)
@@ -728,7 +908,7 @@ export default {
   },
   head() {
     return {
-      title: `GraphQL • ${this.$store.state.name}`,
+      title: `GraphQL • Hoppscotch`,
     }
   },
 }

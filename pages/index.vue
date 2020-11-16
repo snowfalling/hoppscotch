@@ -9,11 +9,12 @@
               <span class="select-wrapper">
                 <v-popover>
                   <input
+                    v-if="!customMethod"
                     id="method"
                     class="method"
-                    v-if="!customMethod"
                     v-model="method"
                     readonly
+                    autofocus
                   />
                   <input v-else v-model="method" placeholder="CUSTOM" />
                   <template slot="popover">
@@ -144,6 +145,7 @@
             <li>
               <label for="url">{{ $t("url") }}</label>
               <input
+                v-if="!this.$store.state.postwoman.settings.EXPERIMENTAL_URL_BAR_ENABLED"
                 :class="{ error: !isValidURL }"
                 @keyup.enter="isValidURL ? sendRequest() : null"
                 id="url"
@@ -153,6 +155,7 @@
                 spellcheck="false"
                 @input="pathInputHandler"
               />
+              <url-field v-model="uri" v-else />
             </li>
             <li class="shrink">
               <label class="hide-on-small-screen" for="send">&nbsp;</label>
@@ -168,7 +171,6 @@
                   <i class="material-icons">send</i>
                 </span>
               </button>
-
               <button v-else @click="cancelRequest" id="send" ref="sendButton">
                 {{ $t("cancel") }}
                 <span>
@@ -204,7 +206,7 @@
             </ul>
             <ul>
               <li>
-                <div class="flex-wrap">
+                <div class="row-wrapper">
                   <span>
                     <pw-toggle v-if="canListParameters" :on="rawInput" @change="rawInput = $event">
                       {{ $t("raw_input") }}
@@ -264,7 +266,7 @@
             <div v-if="!rawInput">
               <ul>
                 <li>
-                  <div class="flex-wrap">
+                  <div class="row-wrapper">
                     <label for="reqParamList">{{ $t("parameter_list") }}</label>
                     <div>
                       <button
@@ -334,7 +336,7 @@
             <div v-else>
               <ul>
                 <li>
-                  <div class="flex-wrap">
+                  <div class="row-wrapper">
                     <label for="rawBody">{{ $t("raw_request_body") }}</label>
                     <div>
                       <button
@@ -362,7 +364,7 @@
               </ul>
             </div>
           </div>
-          <div class="flex-wrap">
+          <div class="row-wrapper">
             <span>
               <button
                 class="icon"
@@ -430,7 +432,7 @@
               <pw-section class="pink" label="Parameters" ref="parameters">
                 <ul v-if="params.length !== 0">
                   <li>
-                    <div class="flex-wrap">
+                    <div class="row-wrapper">
                       <label for="paramList">{{ $t("parameter_list") }}</label>
                       <div>
                         <button
@@ -483,12 +485,12 @@
                           })
                         "
                       >
-                        <option value="query" :selected="param.type === 'query'">{{
-                          $t("query")
-                        }}</option>
-                        <option value="path" :selected="param.type === 'path'">{{
-                          $t("path")
-                        }}</option>
+                        <option value="query" :selected="param.type === 'query'">
+                          {{ $t("query") }}
+                        </option>
+                        <option value="path" :selected="param.type === 'path'">
+                          {{ $t("path") }}
+                        </option>
                       </select>
                     </span>
                   </li>
@@ -517,10 +519,10 @@
             </tab>
 
             <tab :id="'authentication'" :label="$t('authentication')">
-              <pw-section class="cyan" :label="$t('authentication')" ref="authentication">
+              <pw-section class="teal" :label="$t('authentication')" ref="authentication">
                 <ul>
                   <li>
-                    <div class="flex-wrap">
+                    <div class="row-wrapper">
                       <label for="auth">{{ $t("authentication") }}</label>
                       <div>
                         <button
@@ -572,7 +574,7 @@
                 </ul>
                 <ul v-if="auth === 'Bearer Token' || auth === 'OAuth 2.0'">
                   <li>
-                    <div class="flex-wrap">
+                    <div class="row-wrapper">
                       <input placeholder="Token" name="bearer_token" v-model="bearerToken" />
                       <button
                         v-if="auth === 'OAuth 2.0'"
@@ -593,7 +595,7 @@
                     </div>
                   </li>
                 </ul>
-                <div class="flex-wrap">
+                <div class="row-wrapper">
                   <pw-toggle :on="!urlExcludes.auth" @change="setExclude('auth', !$event)">
                     {{ $t("include_in_url") }}
                   </pw-toggle>
@@ -607,7 +609,7 @@
               >
                 <ul>
                   <li>
-                    <div class="flex-wrap">
+                    <div class="row-wrapper">
                       <label for="token-name">{{ $t("token_name") }}</label>
                       <div>
                         <button
@@ -729,7 +731,7 @@
               <pw-section class="orange" label="Headers" ref="headers">
                 <ul v-if="headers.length !== 0">
                   <li>
-                    <div class="flex-wrap">
+                    <div class="row-wrapper">
                       <label for="headerList">{{ $t("header_list") }}</label>
                       <div>
                         <button
@@ -807,7 +809,7 @@
               >
                 <ul>
                   <li>
-                    <div class="flex-wrap">
+                    <div class="row-wrapper">
                       <label for="generatedCode">{{ $t("javascript_code") }}</label>
                       <div>
                         <a
@@ -852,7 +854,7 @@
               >
                 <ul>
                   <li>
-                    <div class="flex-wrap">
+                    <div class="row-wrapper">
                       <label for="generatedCode">{{ $t("javascript_code") }}</label>
                       <div>
                         <a
@@ -878,7 +880,7 @@
                       }"
                     />
                     <div v-if="testReports.length !== 0">
-                      <div class="flex-wrap">
+                      <div class="row-wrapper">
                         <label>Test Reports</label>
                         <div>
                           <button
@@ -894,7 +896,7 @@
                         <div v-if="testReport.startBlock" class="info">
                           <h4>{{ testReport.startBlock }}</h4>
                         </div>
-                        <p v-else-if="testReport.result" class="flex-wrap info">
+                        <p v-else-if="testReport.result" class="row-wrapper info">
                           <span :class="testReport.styles.class">
                             <i class="material-icons">
                               {{ testReport.styles.icon }}
@@ -936,22 +938,22 @@
         </pw-section>
       </div>
 
-      <aside v-if="activeSidebar" class="sticky-inner inner-right">
+      <aside v-if="activeSidebar" class="sticky-inner inner-right lg:max-w-md">
         <section>
           <tabs>
-            <tab :id="'history'" :icon="'watch_later'" :label="$t('history')" :selected="true">
+            <tab :id="'history'" :label="$t('history')" :selected="true">
               <history @useHistory="handleUseHistory" ref="historyComponent" />
             </tab>
 
-            <tab :id="'collections'" :icon="'folder_special'" :label="$t('collections')">
+            <tab :id="'collections'" :label="$t('collections')">
               <collections />
             </tab>
 
-            <tab :id="'env'" :icon="'style'" :label="$t('environments')">
+            <tab :id="'env'" :label="$t('environments')">
               <environments @use-environment="useSelectedEnvironment($event)" />
             </tab>
 
-            <tab :id="'notes'" :icon="'note'" :label="$t('notes')">
+            <tab :id="'notes'" :label="$t('notes')">
               <pw-section class="pink" :label="$t('notes')" ref="sync">
                 <div v-if="fb.currentUser">
                   <inputform />
@@ -983,7 +985,7 @@
         <div slot="header">
           <ul>
             <li>
-              <div class="flex-wrap">
+              <div class="row-wrapper">
                 <h3 class="title">{{ $t("import_curl") }}</h3>
                 <div>
                   <button class="icon" @click="showModal = false">
@@ -1007,7 +1009,7 @@
           </ul>
         </div>
         <div slot="footer">
-          <div class="flex-wrap">
+          <div class="row-wrapper">
             <span></span>
             <span>
               <button class="icon" @click="showModal = false">
@@ -1025,7 +1027,7 @@
         <div slot="header">
           <ul>
             <li>
-              <div class="flex-wrap">
+              <div class="row-wrapper">
                 <h3 class="title">{{ $t("generate_code") }}</h3>
                 <div>
                   <button class="icon" @click="isHidden = true">
@@ -1041,17 +1043,33 @@
             <li>
               <label for="requestType">{{ $t("request_type") }}</label>
               <span class="select-wrapper">
-                <select id="requestType" v-model="requestType">
-                  <option>JavaScript XHR</option>
-                  <option>Fetch</option>
-                  <option>cURL</option>
-                </select>
+                <v-popover>
+                  <pre v-if="requestType">{{
+                    codegens.find((x) => x.id === requestType).name
+                  }}</pre>
+                  <input
+                    v-else
+                    id="requestType"
+                    v-model="requestType"
+                    :placeholder="$t('choose_language')"
+                    class="cursor-pointer"
+                    readonly
+                    autofocus
+                  />
+                  <template slot="popover">
+                    <div v-for="gen in codegens" :key="gen.id">
+                      <button class="icon" @click="requestType = gen.id" v-close-popover>
+                        {{ gen.name }}
+                      </button>
+                    </div>
+                  </template>
+                </v-popover>
               </span>
             </li>
           </ul>
           <ul>
             <li>
-              <div class="flex-wrap">
+              <div class="row-wrapper">
                 <label for="generatedCode">{{ $t("generated_code") }}</label>
                 <div>
                   <button
@@ -1082,7 +1100,7 @@
         <div slot="header">
           <ul>
             <li>
-              <div class="flex-wrap">
+              <div class="row-wrapper">
                 <h3 class="title">{{ $t("manage_token") }}</h3>
                 <div>
                   <button class="icon" @click="showTokenList = false">
@@ -1096,7 +1114,7 @@
         <div slot="body">
           <ul>
             <li>
-              <div class="flex-wrap">
+              <div class="row-wrapper">
                 <label for="token-list">{{ $t("token_list") }}</label>
                 <div v-if="tokens.length != 0">
                   <button
@@ -1126,7 +1144,7 @@
             <li>
               <input :value="token.value" readonly />
             </li>
-            <div class="flex-wrap">
+            <div class="row-wrapper">
               <li>
                 <button
                   class="icon"
@@ -1158,7 +1176,7 @@
         <div slot="header">
           <ul>
             <li>
-              <div class="flex-wrap">
+              <div class="row-wrapper">
                 <h3 class="title">{{ $t("manage_token_req") }}</h3>
                 <div>
                   <button class="icon" @click="showTokenRequestList = false">
@@ -1172,7 +1190,7 @@
         <div slot="body">
           <ul>
             <li>
-              <div class="flex-wrap">
+              <div class="row-wrapper">
                 <label for="token-req-list">{{ $t("token_req_list") }}</label>
                 <div>
                   <button
@@ -1228,7 +1246,7 @@
           </ul>
         </div>
         <div slot="footer">
-          <div class="flex-wrap">
+          <div class="row-wrapper">
             <span></span>
             <span>
               <button class="icon primary" @click="addOAuthTokenReq">
@@ -1246,20 +1264,21 @@
 import url from "url"
 import querystring from "querystring"
 import { commonHeaders } from "~/helpers/headers"
-import parseCurlCommand from "~/assets/js/curlparser.js"
+import parseCurlCommand from "~/helpers/curlparser"
 import getEnvironmentVariablesFromScript from "~/helpers/preRequest"
 import runTestScriptWithVariables from "~/helpers/postwomanTesting"
 import parseTemplateString from "~/helpers/templating"
-import { tokenRequest, oauthRedirect } from "~/assets/js/oauth"
+import { tokenRequest, oauthRedirect } from "~/helpers/oauth"
 import { cancelRunningRequest, sendNetworkRequest } from "~/helpers/network"
 import { fb } from "~/helpers/fb"
 import { getEditorLangForMimeType } from "~/helpers/editorutils"
-import { hasPathParams, addPathParamsToVariables, getQueryParams } from "~/helpers/requestParams.js"
-import { parseUrlAndPath } from "~/helpers/utils/uri.js"
+import { hasPathParams, addPathParamsToVariables, getQueryParams } from "~/helpers/requestParams"
+import { parseUrlAndPath } from "~/helpers/utils/uri"
 import { httpValid } from "~/helpers/utils/valid"
 import { knownContentTypes, isJSONContentType } from "~/helpers/utils/contenttypes"
 import closeIcon from "~/static/icons/close-24px.svg?inline"
 import deleteIcon from "~/static/icons/delete-24px.svg?inline"
+import { codegens, generateCodeWithGenerator } from "~/helpers/codegen/codegen"
 
 const statusCategories = [
   {
@@ -1294,20 +1313,6 @@ const statusCategories = [
     className: "missing-data-response",
   },
 ]
-const parseHeaders = (xhr) => {
-  const headers = xhr
-    .getAllResponseHeaders()
-    .trim()
-    .split(/[\r\n]+/)
-  const headerMap = {}
-  headers.forEach((line) => {
-    const parts = line.split(": ")
-    const header = parts.shift().toLowerCase()
-    const value = parts.join(": ")
-    headerMap[header] = value
-  })
-  return headerMap
-}
 export const findStatusGroup = (responseStatus) =>
   statusCategories.find(({ statusCodeRegex }) => statusCodeRegex.test(responseStatus))
 
@@ -1349,13 +1354,26 @@ export default {
       filenames: "",
       navigatorShare: navigator.share,
       runningRequest: false,
-
       settings: {
         SCROLL_INTO_ENABLED:
           typeof this.$store.state.postwoman.settings.SCROLL_INTO_ENABLED !== "undefined"
             ? this.$store.state.postwoman.settings.SCROLL_INTO_ENABLED
             : true,
       },
+      currentMethodIndex: 0,
+      codegens,
+      methodMenuItems: [
+        "GET",
+        "HEAD",
+        "POST",
+        "PUT",
+        "DELETE",
+        "CONNECT",
+        "OPTIONS",
+        "TRACE",
+        "PATCH",
+        "CUSTOM",
+      ],
     }
   },
   watch: {
@@ -1398,7 +1416,7 @@ export default {
       this.setRouteQueryState()
     },
     params: {
-      handler: function (newValue) {
+      handler(newValue) {
         if (!this.paramsWatchEnabled) {
           this.paramsWatchEnabled = true
           return
@@ -1456,7 +1474,7 @@ export default {
         ? "application/json"
         : ""
     },
-    preRequestScript: function (val, oldVal) {
+    preRequestScript(val, oldVal) {
       this.uri = this.uri
     },
   },
@@ -1788,103 +1806,32 @@ export default {
       return (this.response.headers["content-type"] || "").split(";")[0].toLowerCase()
     },
     requestCode() {
-      if (this.requestType === "JavaScript XHR") {
-        const requestString = []
-        requestString.push("const xhr = new XMLHttpRequest()")
-        const user = this.auth === "Basic Auth" ? `'${this.httpUser}'` : null
-        const password = this.auth === "Basic Auth" ? `'${this.httpPassword}'` : null
-        requestString.push(
-          `xhr.open('${this.method}', '${this.url}${this.pathName}${this.queryString}', true, ${user}, ${password})`
-        )
-        if (this.auth === "Bearer Token" || this.auth === "OAuth 2.0") {
-          requestString.push(`xhr.setRequestHeader('Authorization', 'Bearer ${this.bearerToken}')`)
+      let headers = []
+      if (this.preRequestScript || hasPathParams(this.params)) {
+        let environmentVariables = getEnvironmentVariablesFromScript(this.preRequestScript)
+        environmentVariables = addPathParamsToVariables(this.params, environmentVariables)
+        for (let k of this.headers) {
+          const kParsed = parseTemplateString(k.key, environmentVariables)
+          const valParsed = parseTemplateString(k.value, environmentVariables)
+          headers.push({ key: kParsed, value: valParsed })
         }
-        if (this.headers) {
-          this.headers.forEach(({ key, value }) => {
-            if (key) requestString.push(`xhr.setRequestHeader('${key}', '${value}')`)
-          })
-        }
-        if (["POST", "PUT", "PATCH", "DELETE"].includes(this.method)) {
-          let requestBody = this.rawInput ? this.rawParams : this.rawRequestBody
-          if (isJSONContentType(this.contentType)) {
-            requestBody = `JSON.stringify(${requestBody})`
-          } else if (this.contentType.includes("x-www-form-urlencoded")) {
-            requestBody = `"${requestBody}"`
-          }
-          requestString.push(
-            `xhr.setRequestHeader('Content-Type', '${this.contentType}; charset=utf-8')`
-          )
-          requestString.push(`xhr.send(${requestBody})`)
-        } else {
-          requestString.push("xhr.send()")
-        }
-        return requestString.join("\n")
-      } else if (this.requestType === "Fetch") {
-        const requestString = []
-        let headers = []
-        requestString.push(`fetch("${this.url}${this.pathName}${this.queryString}", {\n`)
-        requestString.push(`  method: "${this.method}",\n`)
-        if (this.auth === "Basic Auth") {
-          const basic = `${this.httpUser}:${this.httpPassword}`
-          headers.push(
-            `    "Authorization": "Basic ${window.btoa(unescape(encodeURIComponent(basic)))}",\n`
-          )
-        } else if (this.auth === "Bearer Token" || this.auth === "OAuth 2.0") {
-          headers.push(`    "Authorization": "Bearer ${this.bearerToken}",\n`)
-        }
-        if (["POST", "PUT", "PATCH", "DELETE"].includes(this.method)) {
-          let requestBody = this.rawInput ? this.rawParams : this.rawRequestBody
-          if (isJSONContentType(this.contentType)) {
-            requestBody = `JSON.stringify(${requestBody})`
-          } else if (this.contentType.includes("x-www-form-urlencoded")) {
-            requestBody = `"${requestBody}"`
-          }
-
-          requestString.push(`  body: ${requestBody},\n`)
-          headers.push(`    "Content-Type": "${this.contentType}; charset=utf-8",\n`)
-        }
-        if (this.headers) {
-          this.headers.forEach(({ key, value }) => {
-            if (key) headers.push(`    "${key}": "${value}",\n`)
-          })
-        }
-        headers = headers.join("").slice(0, -2)
-        requestString.push(`  headers: {\n${headers}\n  },\n`)
-        requestString.push('  credentials: "same-origin"\n')
-        requestString.push("}).then(function(response) {\n")
-        requestString.push("  response.status\n")
-        requestString.push("  response.statusText\n")
-        requestString.push("  response.headers\n")
-        requestString.push("  response.url\n\n")
-        requestString.push("  return response.text()\n")
-        requestString.push("}).catch(function(error) {\n")
-        requestString.push("  error.message\n")
-        requestString.push("})")
-        return requestString.join("")
-      } else if (this.requestType === "cURL") {
-        const requestString = []
-        requestString.push(`curl -X ${this.method}`)
-        requestString.push(`  '${this.url}${this.pathName}${this.queryString}'`)
-        if (this.auth === "Basic Auth") {
-          const basic = `${this.httpUser}:${this.httpPassword}`
-          requestString.push(
-            `  -H 'Authorization: Basic ${window.btoa(unescape(encodeURIComponent(basic)))}'`
-          )
-        } else if (this.auth === "Bearer Token" || this.auth === "OAuth 2.0") {
-          requestString.push(`  -H 'Authorization: Bearer ${this.bearerToken}'`)
-        }
-        if (this.headers) {
-          this.headers.forEach(({ key, value }) => {
-            if (key) requestString.push(`  -H '${key}: ${value}'`)
-          })
-        }
-        if (["POST", "PUT", "PATCH", "DELETE"].includes(this.method)) {
-          const requestBody = this.rawInput ? this.rawParams : this.rawRequestBody
-          requestString.push(`  -H 'Content-Type: ${this.contentType}; charset=utf-8'`)
-          requestString.push(`  -d '${requestBody}'`)
-        }
-        return requestString.join(" \\\n")
       }
+
+      return generateCodeWithGenerator(this.requestType, {
+        auth: this.auth,
+        method: this.method,
+        url: this.url,
+        pathName: this.pathName,
+        queryString: this.queryString,
+        httpUser: this.httpUser,
+        httpPassword: this.httpPassword,
+        bearerToken: this.bearerToken,
+        headers,
+        rawInput: this.rawInput,
+        rawParams: this.rawParams,
+        rawRequestBody: this.rawRequestBody,
+        contentType: this.contentType,
+      })
     },
     tokenReqDetails() {
       const details = {
@@ -1898,14 +1845,28 @@ export default {
     },
   },
   methods: {
-    useSelectedEnvironment(environment) {
+    useSelectedEnvironment(args) {
+      let environment = args.environment
+      let environments = args.environments
       let preRequestScriptString = ""
       for (let variable of environment.variables) {
-        preRequestScriptString =
-          preRequestScriptString + `pw.env.set('${variable.key}', '${variable.value}');\n`
+        preRequestScriptString += `pw.env.set('${variable.key}', '${variable.value}');\n`
+      }
+      for (let env of environments) {
+        if (env.name === environment.name) {
+          continue
+        }
+
+        if (env.name === "Globals" || env.name === "globals") {
+          preRequestScriptString += this.useSelectedEnvironment({
+            environment: env,
+            environments,
+          })
+        }
       }
       this.preRequestScript = preRequestScriptString
       this.showPreRequestScript = true
+      return preRequestScriptString
     },
     checkCollections() {
       const checkCollectionAvailability =
@@ -2056,14 +2017,14 @@ export default {
           icon: "done",
         })
         ;(() => {
-          const status = (this.response.status = payload.status)
-          const headers = (this.response.headers = payload.headers)
+          this.response.status = payload.status
+          this.response.headers = payload.headers
           // We don't need to bother parsing JSON, axios already handles it for us!
-          const body = (this.response.body = payload.data)
+          this.response.body = payload.data
           // Addition of an entry to the history component.
           const entry = {
             label: this.requestName,
-            status,
+            status: this.response.status,
             date: new Date().toLocaleDateString(),
             time: new Date().toLocaleTimeString(),
             method: this.method,
@@ -2205,9 +2166,8 @@ export default {
       this.testReports = testResults
     },
     getQueryStringFromPath() {
-      let queryString
       const pathParsed = url.parse(this.uri)
-      return (queryString = pathParsed.query ? pathParsed.query : "")
+      return pathParsed.query ? pathParsed.query : ""
     },
     queryStringToArray(queryString) {
       const queryParsed = querystring.parse(queryString)
@@ -2400,6 +2360,7 @@ export default {
         const { origin, pathname } = new URL(parsedCurl.url.replace(/"/g, "").replace(/'/g, ""))
         this.url = origin
         this.path = pathname
+        this.uri = this.url + this.path
         this.headers = []
         if (parsedCurl.headers) {
           for (const key of Object.keys(parsedCurl.headers)) {
@@ -2429,6 +2390,7 @@ export default {
       switch (name) {
         case "bodyParams":
           this.bodyParams = []
+          this.files = []
           break
         case "rawParams":
           this.rawParams = "{}"
@@ -2575,6 +2537,7 @@ export default {
           icon: "attach_file",
         })
       }
+      this.$refs.payload.value = ""
     },
     async handleAccessTokenRequest() {
       if (this.oidcDiscoveryUrl === "" && (this.authUrl === "" || this.accessTokenUrl === "")) {
@@ -2601,7 +2564,7 @@ export default {
     },
     async oauthRedirectReq() {
       const tokenInfo = await oauthRedirect()
-      if (tokenInfo.hasOwnProperty("access_token")) {
+      if (Object.prototype.hasOwnProperty.call(tokenInfo, "access_token")) {
         this.bearerToken = tokenInfo.access_token
         this.addOAuthToken({
           name: this.accessTokenName,
@@ -2687,19 +2650,43 @@ export default {
         } else {
           this.cancelRequest()
         }
-      } else if (e.key === "s" && (e.ctrlKey || e.metaKey)) {
+      }
+      if (e.key === "s" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault()
         this.saveRequest()
-      } else if (e.key === "k" && (e.ctrlKey || e.metaKey)) {
+      }
+      if (e.key === "k" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault()
         this.copyRequest()
-      } else if (e.key === "j" && (e.ctrlKey || e.metaKey)) {
+      }
+      if (e.key === "j" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault()
         this.$refs.clearAll.click()
-      } else if (e.key === "Escape") {
+      }
+      if (e.key === "Escape") {
         e.preventDefault()
         this.showModal = this.showTokenList = this.showTokenRequestList = this.showRequestModal = false
         this.isHidden = true
+      }
+      if ((e.key === "g" || e.key === "G") && e.altKey) {
+        this.method = "GET"
+      }
+      if ((e.key === "h" || e.key === "H") && e.altKey) {
+        this.method = "HEAD"
+      }
+      if ((e.key === "p" || e.key === "P") && e.altKey) {
+        this.method = "POST"
+      }
+      if ((e.key === "u" || e.key === "U") && e.altKey) {
+        this.method = "PUT"
+      }
+      if ((e.key === "x" || e.key === "X") && e.altKey) {
+        this.method = "DELETE"
+      }
+      if (e.key == "ArrowUp" && e.altKey && this.currentMethodIndex > 0) {
+        this.method = this.methodMenuItems[--this.currentMethodIndex % this.methodMenuItems.length]
+      } else if (e.key == "ArrowDown" && e.altKey && this.currentMethodIndex < 9) {
+        this.method = this.methodMenuItems[++this.currentMethodIndex % this.methodMenuItems.length]
       }
     }
     document.addEventListener("keydown", this._keyListener.bind(this))

@@ -157,7 +157,7 @@
       <i class="material-icons">schedule</i> {{ $t("history_empty") }}
     </p>
     <div v-if="history.length !== 0">
-      <div class="flex-wrap" v-if="!isClearingHistory">
+      <div class="row-wrapper" v-if="!isClearingHistory">
         <button
           class="icon"
           id="clear-history-button"
@@ -219,7 +219,7 @@
           </template>
         </v-popover>
       </div>
-      <div class="flex-wrap" v-else>
+      <div class="row-wrapper" v-else>
         <label for="clear-history-button" class="info">
           <i class="material-icons">help_outline</i> {{ $t("are_you_sure") }}
         </label>
@@ -353,9 +353,9 @@ export default {
     },
   },
   methods: {
-    clearHistory() {
+    async clearHistory() {
       if (fb.currentUser !== null) {
-        fb.clearHistory()
+        await fb.clearHistory()
       }
       this.history = []
       this.filterText = ""
@@ -368,17 +368,17 @@ export default {
     useHistory(entry) {
       this.$emit("useHistory", entry)
     },
-    findEntryStatus(entry) {
-      const foundStatusGroup = findStatusGroup(entry.status)
+    findEntryStatus({ status }) {
+      const foundStatusGroup = findStatusGroup(status)
       return (
         foundStatusGroup || {
           className: "",
         }
       )
     },
-    deleteHistory(entry) {
+    async deleteHistory(entry) {
       if (fb.currentUser !== null) {
-        fb.deleteHistory(entry)
+        await fb.deleteHistory(entry)
       }
       this.history.splice(this.history.indexOf(entry), 1)
       if (this.history.length === 0) {
@@ -464,9 +464,9 @@ export default {
     toggleCollapse() {
       this.showMore = !this.showMore
     },
-    toggleStar(entry) {
+    async toggleStar(entry) {
       if (fb.currentUser !== null) {
-        fb.toggleStar(entry, !entry.star)
+        await fb.toggleStar(entry, !entry.star)
       }
       entry.star = !entry.star
       updateOnLocalStorage("history", this.history)

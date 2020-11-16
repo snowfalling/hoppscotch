@@ -3,7 +3,7 @@
     <div slot="header">
       <ul>
         <li>
-          <div class="flex-wrap">
+          <div class="row-wrapper">
             <h3 class="title">{{ $t("import_export") }} {{ $t("collections") }}</h3>
             <div>
               <button class="icon" @click="hideModal">
@@ -11,7 +11,7 @@
               </button>
             </div>
           </div>
-          <div class="flex-wrap">
+          <div class="row-wrapper">
             <span
               v-tooltip="{
                 content: !fb.currentUser ? $t('login_first') : $t('replace_current'),
@@ -32,7 +32,7 @@
               <input
                 type="file"
                 @change="replaceWithJSON"
-                style="display: none;"
+                style="display: none"
                 ref="inputChooseFileToReplaceWith"
                 accept="application/json"
               />
@@ -47,7 +47,7 @@
               <input
                 type="file"
                 @change="importFromJSON"
-                style="display: none;"
+                style="display: none"
                 ref="inputChooseFileToImportFrom"
                 accept="application/json"
               />
@@ -60,7 +60,7 @@
       <textarea v-model="collectionJson" rows="8"></textarea>
     </div>
     <div slot="footer">
-      <div class="flex-wrap">
+      <div class="row-wrapper">
         <span></span>
         <span>
           <button class="icon" @click="hideModal">
@@ -108,8 +108,8 @@ export default {
     },
     replaceWithJSON() {
       let reader = new FileReader()
-      reader.onload = (event) => {
-        let content = event.target.result
+      reader.onload = ({ target }) => {
+        let content = target.result
         let collections = JSON.parse(content)
         if (collections[0]) {
           let [name, folders, requests] = Object.keys(collections[0])
@@ -117,7 +117,7 @@ export default {
             // Do nothing
           }
         } else if (collections.info && collections.info.schema.includes("v2.1.0")) {
-          collections = this.parsePostmanCollection(collections)
+          collections = [this.parsePostmanCollection(collections)]
         } else {
           return this.failedImport()
         }
@@ -126,11 +126,12 @@ export default {
         this.syncToFBCollections()
       }
       reader.readAsText(this.$refs.inputChooseFileToReplaceWith.files[0])
+      this.$refs.inputChooseFileToReplaceWith.value = ""
     },
     importFromJSON() {
       let reader = new FileReader()
-      reader.onload = (event) => {
-        let content = event.target.result
+      reader.onload = ({ target }) => {
+        let content = target.result
         let collections = JSON.parse(content)
         if (collections[0]) {
           let [name, folders, requests] = Object.keys(collections[0])
@@ -138,7 +139,9 @@ export default {
             // Do nothing
           }
         } else if (collections.info && collections.info.schema.includes("v2.1.0")) {
-          collections = this.parsePostmanCollection(collections)
+          //replace the variables, postman uses {{var}}, Hoppscotch uses <<var>>
+          collections = JSON.parse(content.replaceAll(/{{([a-z]+)}}/gi, "<<$1>>"))
+          collections = [this.parsePostmanCollection(collections)]
         } else {
           return this.failedImport()
         }
@@ -147,6 +150,7 @@ export default {
         this.syncToFBCollections()
       }
       reader.readAsText(this.$refs.inputChooseFileToImportFrom.files[0])
+      this.$refs.inputChooseFileToImportFrom.value = ""
     },
     exportJSON() {
       let text = this.collectionJson
@@ -155,7 +159,7 @@ export default {
         type: "text/json",
       })
       let anchor = document.createElement("a")
-      anchor.download = "postwoman-collection.json"
+      anchor.download = "hoppscotch-collection.json"
       anchor.href = window.URL.createObjectURL(blob)
       anchor.target = "_blank"
       anchor.style.display = "none"
@@ -187,31 +191,29 @@ export default {
         icon: "error",
       })
     },
-    parsePostmanCollection(collection, folders = true) {
-      let postwomanCollection = folders
-        ? [
-            {
-              name: "",
-              folders: [],
-              requests: [],
-            },
-          ]
-        : {
-            name: "",
-            requests: [],
-          }
-      for (let collectionItem of collection.item) {
-        if (collectionItem.request) {
-          if (postwomanCollection[0]) {
-            postwomanCollection[0].name = collection.info ? collection.info.name : ""
-            postwomanCollection[0].requests.push(this.parsePostmanRequest(collectionItem))
+    parsePostmanCollection({ info, name, item }) {
+      let postwomanCollection = {
+        name: "",
+        folders: [],
+        requests: [],
+      }
+
+      postwomanCollection.name = info ? info.name : name
+
+      if (item && item.length > 0) {
+        for (let collectionItem of item) {
+          if (collectionItem.request) {
+            if (postwomanCollection.hasOwnProperty("folders")) {
+              postwomanCollection.name = info ? info.name : name
+              postwomanCollection.requests.push(this.parsePostmanRequest(collectionItem))
+            } else {
+              postwomanCollection.name = name ? name : ""
+              postwomanCollection.requests.push(this.parsePostmanRequest(collectionItem))
+            }
+          } else if (this.hasFolder(collectionItem)) {
+            postwomanCollection.folders.push(this.parsePostmanCollection(collectionItem))
           } else {
-            postwomanCollection.name = collection.name ? collection.name : ""
             postwomanCollection.requests.push(this.parsePostmanRequest(collectionItem))
-          }
-        } else if (collectionItem.item) {
-          if (collectionItem.item[0]) {
-            postwomanCollection[0].folders.push(this.parsePostmanCollection(collectionItem, false))
           }
         }
       }
@@ -290,6 +292,9 @@ export default {
         }
       }
       return pwRequest
+    },
+    hasFolder(item) {
+      return item.hasOwnProperty("item")
     },
   },
 }
